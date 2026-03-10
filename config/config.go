@@ -22,9 +22,11 @@ func Initialize() {
 	v.SetDefault("instance_url", "http://localhost:5678")
 	v.SetDefault("api_key", "")
 
+	homeDir, _ := os.UserHomeDir()
+
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
-	v.AddConfigPath("$HOME/.n8n")
+	v.AddConfigPath(homeDir + "/.n8n")
 	v.AddConfigPath(".")
 
 	if err := v.ReadInConfig(); err != nil {
@@ -54,11 +56,9 @@ func LoadProfile(profileName string) error {
 		return fmt.Errorf("invalid profile format for %q", profileName)
 	}
 
-	// Only set values that aren't already set by flags/env
+	// Set profile values (flags and env vars take precedence via viper override)
 	for k, v := range profile {
-		if !viper.IsSet(k) {
-			viper.Set(k, v)
-		}
+		viper.SetDefault(k, v)
 	}
 	return nil
 }
