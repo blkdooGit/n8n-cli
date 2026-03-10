@@ -3,4 +3,5 @@ dist
 *.out
 bin
 .vscode
-.DS_Storepackage-lock.json
+.DS_Store
+package-lock.json
