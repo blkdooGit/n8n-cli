@@ -23,6 +23,11 @@ package main
 
 import (
 	"github.com/edenreich/n8n-cli/cmd"
+	_ "github.com/edenreich/n8n-cli/cmd/audit"
+	_ "github.com/edenreich/n8n-cli/cmd/config"
+	_ "github.com/edenreich/n8n-cli/cmd/credentials"
+	_ "github.com/edenreich/n8n-cli/cmd/projects"
+	_ "github.com/edenreich/n8n-cli/cmd/variables"
 	_ "github.com/edenreich/n8n-cli/cmd/workflows"
 )
 

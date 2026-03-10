@@ -28,7 +28,7 @@ func TestListWorkflowsCommand(t *testing.T) {
 					limit = &limitVal
 				}
 
-				workflowList, err := fakeClient.GetWorkflows(limit)
+				workflowList, err := fakeClient.GetWorkflows(limit, nil)
 				if err != nil {
 					return err
 				}
@@ -79,7 +79,7 @@ func TestListWorkflowsCommand(t *testing.T) {
 
 		assert.NoError(t, err)
 		assert.Equal(t, 1, fakeClient.GetWorkflowsCallCount())
-		limit := fakeClient.GetWorkflowsArgsForCall(0)
+		limit, _ := fakeClient.GetWorkflowsArgsForCall(0)
 		assert.Nil(t, limit, "Expected limit to be nil when not specified")
 	})
 
@@ -93,7 +93,7 @@ func TestListWorkflowsCommand(t *testing.T) {
 		err = cmd.Execute()
 
 		assert.NoError(t, err)
-		limit := fakeClient.GetWorkflowsArgsForCall(fakeClient.GetWorkflowsCallCount() - 1)
+		limit, _ := fakeClient.GetWorkflowsArgsForCall(fakeClient.GetWorkflowsCallCount() - 1)
 		assert.NotNil(t, limit, "Expected limit to be set")
 		assert.Equal(t, 5, *limit)
 	})

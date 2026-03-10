@@ -58,6 +58,10 @@ var ListCmd = &cobra.Command{
 func init() {
 	ListCmd.Flags().StringVarP(&outputFormat, "output", "o", formatTable, "Output format: table, json, or yaml")
 	ListCmd.Flags().IntP("limit", "l", 0, "Maximum number of workflows to return (default: 100, max: 250)")
+	ListCmd.Flags().String("name", "", "Filter workflows by name")
+	ListCmd.Flags().String("tags", "", "Filter workflows by tags (comma-separated)")
+	ListCmd.Flags().Bool("active", false, "Filter to active workflows only")
+	ListCmd.Flags().Bool("inactive", false, "Filter to inactive workflows only")
 	rootcmd.GetWorkflowsCmd().AddCommand(ListCmd)
 }
 
@@ -129,7 +133,26 @@ func listWorkflows(cmd *cobra.Command, args []string) error {
 		limit = &limitVal
 	}
 
-	workflowList, err := client.GetWorkflows(limit)
+	var filters *n8n.WorkflowFilters
+	name, _ := cmd.Flags().GetString("name")
+	tags, _ := cmd.Flags().GetString("tags")
+	activeFlag, _ := cmd.Flags().GetBool("active")
+	inactiveFlag, _ := cmd.Flags().GetBool("inactive")
+	if name != "" || tags != "" || activeFlag || inactiveFlag {
+		filters = &n8n.WorkflowFilters{
+			Name: name,
+			Tags: tags,
+		}
+		if activeFlag {
+			t := true
+			filters.Active = &t
+		} else if inactiveFlag {
+			f := false
+			filters.Active = &f
+		}
+	}
+
+	workflowList, err := client.GetWorkflows(limit, filters)
 	if err != nil {
 		return err
 	}

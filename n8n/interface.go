@@ -8,7 +8,8 @@ type ClientInterface interface {
 	// GetWorkflows fetches workflows from the n8n API
 	// If limit is nil, uses the API's default (100)
 	// If limit is provided, returns up to that many workflows (max 250)
-	GetWorkflows(limit *int) (*WorkflowList, error)
+	// If filters is provided, applies the given filters
+	GetWorkflows(limit *int, filters *WorkflowFilters) (*WorkflowList, error)
 	// GetWorkflow fetches a single workflow by its ID
 	GetWorkflow(id string) (*Workflow, error)
 	// ActivateWorkflow activates a workflow by its ID
@@ -33,6 +34,30 @@ type ClientInterface interface {
 	CreateTag(tagName string) (*Tag, error)
 	// GetTags fetches all tags from n8n
 	GetTags() (*TagList, error)
+	// GetVariables fetches environment variables from the n8n API
+	GetVariables(limit *int, cursor string) (*VariableList, error)
+	// CreateVariable creates a new environment variable
+	CreateVariable(variable *Variable) error
+	// UpdateVariable updates an existing environment variable by its ID
+	UpdateVariable(id string, variable *Variable) error
+	// DeleteVariable deletes an environment variable by its ID
+	DeleteVariable(id string) error
+	// GetProjects fetches projects from the n8n API
+	GetProjects(limit *int, cursor string) (*ProjectList, error)
+	// CreateProject creates a new project
+	CreateProject(name string) error
+	// GetCredentialSchema fetches the schema for a credential type
+	GetCredentialSchema(credentialTypeName string) (map[string]interface{}, error)
+	// CreateCredential creates a new credential
+	CreateCredential(credential *Credential) (*CreateCredentialResponse, error)
+	// DeleteCredential deletes a credential by its ID
+	DeleteCredential(id string) error
+	// RetryExecution retries a failed execution
+	RetryExecution(executionID string, loadWorkflow bool) (*Execution, error)
+	// DeleteExecution deletes an execution by its ID
+	DeleteExecution(executionID string) error
+	// GenerateAudit generates a security audit report
+	GenerateAudit(options *PostAuditJSONBody) (*Audit, error)
 }
 
 // Ensure Client implements ClientInterface

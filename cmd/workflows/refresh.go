@@ -95,7 +95,7 @@ func RefreshWorkflowsWithClient(cmd *cobra.Command, client n8n.ClientInterface, 
 		cmd.Println("Refreshing all workflows from n8n instance")
 
 		limit := n8n.MaxLimit
-		workflowList, err := client.GetWorkflows(&limit)
+		workflowList, err := client.GetWorkflows(&limit, nil)
 		if err != nil {
 			return fmt.Errorf("error fetching workflows: %w", err)
 		}

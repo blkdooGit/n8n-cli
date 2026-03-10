@@ -8,6 +8,141 @@ import (
 )
 
 type FakeClientInterface struct {
+	CreateCredentialStub        func(*n8n.Credential) (*n8n.CreateCredentialResponse, error)
+	createCredentialMutex       sync.RWMutex
+	createCredentialArgsForCall []struct {
+		arg1 *n8n.Credential
+	}
+	createCredentialReturns struct {
+		result1 *n8n.CreateCredentialResponse
+		result2 error
+	}
+	createCredentialReturnsOnCall map[int]struct {
+		result1 *n8n.CreateCredentialResponse
+		result2 error
+	}
+	CreateProjectStub        func(string) error
+	createProjectMutex       sync.RWMutex
+	createProjectArgsForCall []struct {
+		arg1 string
+	}
+	createProjectReturns struct {
+		result1 error
+	}
+	createProjectReturnsOnCall map[int]struct {
+		result1 error
+	}
+	CreateVariableStub        func(*n8n.Variable) error
+	createVariableMutex       sync.RWMutex
+	createVariableArgsForCall []struct {
+		arg1 *n8n.Variable
+	}
+	createVariableReturns struct {
+		result1 error
+	}
+	createVariableReturnsOnCall map[int]struct {
+		result1 error
+	}
+	DeleteCredentialStub        func(string) error
+	deleteCredentialMutex       sync.RWMutex
+	deleteCredentialArgsForCall []struct {
+		arg1 string
+	}
+	deleteCredentialReturns struct {
+		result1 error
+	}
+	deleteCredentialReturnsOnCall map[int]struct {
+		result1 error
+	}
+	DeleteExecutionStub        func(string) error
+	deleteExecutionMutex       sync.RWMutex
+	deleteExecutionArgsForCall []struct {
+		arg1 string
+	}
+	deleteExecutionReturns struct {
+		result1 error
+	}
+	deleteExecutionReturnsOnCall map[int]struct {
+		result1 error
+	}
+	DeleteVariableStub        func(string) error
+	deleteVariableMutex       sync.RWMutex
+	deleteVariableArgsForCall []struct {
+		arg1 string
+	}
+	deleteVariableReturns struct {
+		result1 error
+	}
+	deleteVariableReturnsOnCall map[int]struct {
+		result1 error
+	}
+	GetCredentialSchemaStub        func(string) (map[string]interface{}, error)
+	getCredentialSchemaMutex       sync.RWMutex
+	getCredentialSchemaArgsForCall []struct {
+		arg1 string
+	}
+	getCredentialSchemaReturns struct {
+		result1 map[string]interface{}
+		result2 error
+	}
+	getCredentialSchemaReturnsOnCall map[int]struct {
+		result1 map[string]interface{}
+		result2 error
+	}
+	GetProjectsStub        func(*int, string) (*n8n.ProjectList, error)
+	getProjectsMutex       sync.RWMutex
+	getProjectsArgsForCall []struct {
+		arg1 *int
+		arg2 string
+	}
+	getProjectsReturns struct {
+		result1 *n8n.ProjectList
+		result2 error
+	}
+	getProjectsReturnsOnCall map[int]struct {
+		result1 *n8n.ProjectList
+		result2 error
+	}
+	GetVariablesStub        func(*int, string) (*n8n.VariableList, error)
+	getVariablesMutex       sync.RWMutex
+	getVariablesArgsForCall []struct {
+		arg1 *int
+		arg2 string
+	}
+	getVariablesReturns struct {
+		result1 *n8n.VariableList
+		result2 error
+	}
+	getVariablesReturnsOnCall map[int]struct {
+		result1 *n8n.VariableList
+		result2 error
+	}
+	RetryExecutionStub        func(string, bool) (*n8n.Execution, error)
+	retryExecutionMutex       sync.RWMutex
+	retryExecutionArgsForCall []struct {
+		arg1 string
+		arg2 bool
+	}
+	retryExecutionReturns struct {
+		result1 *n8n.Execution
+		result2 error
+	}
+	retryExecutionReturnsOnCall map[int]struct {
+		result1 *n8n.Execution
+		result2 error
+	}
+	UpdateVariableStub        func(string, *n8n.Variable) error
+	updateVariableMutex       sync.RWMutex
+	updateVariableArgsForCall []struct {
+		arg1 string
+		arg2 *n8n.Variable
+	}
+	updateVariableReturns struct {
+		result1 error
+	}
+	updateVariableReturnsOnCall map[int]struct {
+		result1 error
+	}
 	ActivateWorkflowStub        func(string) (*n8n.Workflow, error)
 	activateWorkflowMutex       sync.RWMutex
 	activateWorkflowArgsForCall []struct {
@@ -140,10 +275,11 @@ type FakeClientInterface struct {
 		result1 n8n.WorkflowTags
 		result2 error
 	}
-	GetWorkflowsStub        func(*int) (*n8n.WorkflowList, error)
+	GetWorkflowsStub        func(*int, *n8n.WorkflowFilters) (*n8n.WorkflowList, error)
 	getWorkflowsMutex       sync.RWMutex
 	getWorkflowsArgsForCall []struct {
 		arg1 *int
+		arg2 *n8n.WorkflowFilters
 	}
 	getWorkflowsReturns struct {
 		result1 *n8n.WorkflowList
@@ -179,6 +315,19 @@ type FakeClientInterface struct {
 	}
 	updateWorkflowTagsReturnsOnCall map[int]struct {
 		result1 n8n.WorkflowTags
+		result2 error
+	}
+	GenerateAuditStub        func(*n8n.PostAuditJSONBody) (*n8n.Audit, error)
+	generateAuditMutex       sync.RWMutex
+	generateAuditArgsForCall []struct {
+		arg1 *n8n.PostAuditJSONBody
+	}
+	generateAuditReturns struct {
+		result1 *n8n.Audit
+		result2 error
+	}
+	generateAuditReturnsOnCall map[int]struct {
+		result1 *n8n.Audit
 		result2 error
 	}
 	invocations      map[string][][]interface{}
@@ -819,18 +968,19 @@ func (fake *FakeClientInterface) GetWorkflowTagsReturnsOnCall(i int, result1 n8n
 	}{result1, result2}
 }
 
-func (fake *FakeClientInterface) GetWorkflows(arg1 *int) (*n8n.WorkflowList, error) {
+func (fake *FakeClientInterface) GetWorkflows(arg1 *int, arg2 *n8n.WorkflowFilters) (*n8n.WorkflowList, error) {
 	fake.getWorkflowsMutex.Lock()
 	ret, specificReturn := fake.getWorkflowsReturnsOnCall[len(fake.getWorkflowsArgsForCall)]
 	fake.getWorkflowsArgsForCall = append(fake.getWorkflowsArgsForCall, struct {
 		arg1 *int
-	}{arg1})
+		arg2 *n8n.WorkflowFilters
+	}{arg1, arg2})
 	stub := fake.GetWorkflowsStub
 	fakeReturns := fake.getWorkflowsReturns
-	fake.recordInvocation("GetWorkflows", []interface{}{arg1})
+	fake.recordInvocation("GetWorkflows", []interface{}{arg1, arg2})
 	fake.getWorkflowsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -844,17 +994,17 @@ func (fake *FakeClientInterface) GetWorkflowsCallCount() int {
 	return len(fake.getWorkflowsArgsForCall)
 }
 
-func (fake *FakeClientInterface) GetWorkflowsCalls(stub func(*int) (*n8n.WorkflowList, error)) {
+func (fake *FakeClientInterface) GetWorkflowsCalls(stub func(*int, *n8n.WorkflowFilters) (*n8n.WorkflowList, error)) {
 	fake.getWorkflowsMutex.Lock()
 	defer fake.getWorkflowsMutex.Unlock()
 	fake.GetWorkflowsStub = stub
 }
 
-func (fake *FakeClientInterface) GetWorkflowsArgsForCall(i int) *int {
+func (fake *FakeClientInterface) GetWorkflowsArgsForCall(i int) (*int, *n8n.WorkflowFilters) {
 	fake.getWorkflowsMutex.RLock()
 	defer fake.getWorkflowsMutex.RUnlock()
 	argsForCall := fake.getWorkflowsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeClientInterface) GetWorkflowsReturns(result1 *n8n.WorkflowList, result2 error) {
@@ -881,6 +1031,696 @@ func (fake *FakeClientInterface) GetWorkflowsReturnsOnCall(i int, result1 *n8n.W
 		result1 *n8n.WorkflowList
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) CreateCredential(arg1 *n8n.Credential) (*n8n.CreateCredentialResponse, error) {
+	fake.createCredentialMutex.Lock()
+	ret, specificReturn := fake.createCredentialReturnsOnCall[len(fake.createCredentialArgsForCall)]
+	fake.createCredentialArgsForCall = append(fake.createCredentialArgsForCall, struct {
+		arg1 *n8n.Credential
+	}{arg1})
+	stub := fake.CreateCredentialStub
+	fakeReturns := fake.createCredentialReturns
+	fake.recordInvocation("CreateCredential", []interface{}{arg1})
+	fake.createCredentialMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClientInterface) CreateCredentialCallCount() int {
+	fake.createCredentialMutex.RLock()
+	defer fake.createCredentialMutex.RUnlock()
+	return len(fake.createCredentialArgsForCall)
+}
+
+func (fake *FakeClientInterface) CreateCredentialCalls(stub func(*n8n.Credential) (*n8n.CreateCredentialResponse, error)) {
+	fake.createCredentialMutex.Lock()
+	defer fake.createCredentialMutex.Unlock()
+	fake.CreateCredentialStub = stub
+}
+
+func (fake *FakeClientInterface) CreateCredentialArgsForCall(i int) *n8n.Credential {
+	fake.createCredentialMutex.RLock()
+	defer fake.createCredentialMutex.RUnlock()
+	argsForCall := fake.createCredentialArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClientInterface) CreateCredentialReturns(result1 *n8n.CreateCredentialResponse, result2 error) {
+	fake.createCredentialMutex.Lock()
+	defer fake.createCredentialMutex.Unlock()
+	fake.CreateCredentialStub = nil
+	fake.createCredentialReturns = struct {
+		result1 *n8n.CreateCredentialResponse
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) CreateCredentialReturnsOnCall(i int, result1 *n8n.CreateCredentialResponse, result2 error) {
+	fake.createCredentialMutex.Lock()
+	defer fake.createCredentialMutex.Unlock()
+	fake.CreateCredentialStub = nil
+	if fake.createCredentialReturnsOnCall == nil {
+		fake.createCredentialReturnsOnCall = make(map[int]struct {
+			result1 *n8n.CreateCredentialResponse
+			result2 error
+		})
+	}
+	fake.createCredentialReturnsOnCall[i] = struct {
+		result1 *n8n.CreateCredentialResponse
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) CreateProject(arg1 string) error {
+	fake.createProjectMutex.Lock()
+	ret, specificReturn := fake.createProjectReturnsOnCall[len(fake.createProjectArgsForCall)]
+	fake.createProjectArgsForCall = append(fake.createProjectArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.CreateProjectStub
+	fakeReturns := fake.createProjectReturns
+	fake.recordInvocation("CreateProject", []interface{}{arg1})
+	fake.createProjectMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClientInterface) CreateProjectCallCount() int {
+	fake.createProjectMutex.RLock()
+	defer fake.createProjectMutex.RUnlock()
+	return len(fake.createProjectArgsForCall)
+}
+
+func (fake *FakeClientInterface) CreateProjectCalls(stub func(string) error) {
+	fake.createProjectMutex.Lock()
+	defer fake.createProjectMutex.Unlock()
+	fake.CreateProjectStub = stub
+}
+
+func (fake *FakeClientInterface) CreateProjectArgsForCall(i int) string {
+	fake.createProjectMutex.RLock()
+	defer fake.createProjectMutex.RUnlock()
+	argsForCall := fake.createProjectArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClientInterface) CreateProjectReturns(result1 error) {
+	fake.createProjectMutex.Lock()
+	defer fake.createProjectMutex.Unlock()
+	fake.CreateProjectStub = nil
+	fake.createProjectReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) CreateProjectReturnsOnCall(i int, result1 error) {
+	fake.createProjectMutex.Lock()
+	defer fake.createProjectMutex.Unlock()
+	fake.CreateProjectStub = nil
+	if fake.createProjectReturnsOnCall == nil {
+		fake.createProjectReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.createProjectReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) CreateVariable(arg1 *n8n.Variable) error {
+	fake.createVariableMutex.Lock()
+	ret, specificReturn := fake.createVariableReturnsOnCall[len(fake.createVariableArgsForCall)]
+	fake.createVariableArgsForCall = append(fake.createVariableArgsForCall, struct {
+		arg1 *n8n.Variable
+	}{arg1})
+	stub := fake.CreateVariableStub
+	fakeReturns := fake.createVariableReturns
+	fake.recordInvocation("CreateVariable", []interface{}{arg1})
+	fake.createVariableMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClientInterface) CreateVariableCallCount() int {
+	fake.createVariableMutex.RLock()
+	defer fake.createVariableMutex.RUnlock()
+	return len(fake.createVariableArgsForCall)
+}
+
+func (fake *FakeClientInterface) CreateVariableCalls(stub func(*n8n.Variable) error) {
+	fake.createVariableMutex.Lock()
+	defer fake.createVariableMutex.Unlock()
+	fake.CreateVariableStub = stub
+}
+
+func (fake *FakeClientInterface) CreateVariableArgsForCall(i int) *n8n.Variable {
+	fake.createVariableMutex.RLock()
+	defer fake.createVariableMutex.RUnlock()
+	argsForCall := fake.createVariableArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClientInterface) CreateVariableReturns(result1 error) {
+	fake.createVariableMutex.Lock()
+	defer fake.createVariableMutex.Unlock()
+	fake.CreateVariableStub = nil
+	fake.createVariableReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) CreateVariableReturnsOnCall(i int, result1 error) {
+	fake.createVariableMutex.Lock()
+	defer fake.createVariableMutex.Unlock()
+	fake.CreateVariableStub = nil
+	if fake.createVariableReturnsOnCall == nil {
+		fake.createVariableReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.createVariableReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) DeleteCredential(arg1 string) error {
+	fake.deleteCredentialMutex.Lock()
+	ret, specificReturn := fake.deleteCredentialReturnsOnCall[len(fake.deleteCredentialArgsForCall)]
+	fake.deleteCredentialArgsForCall = append(fake.deleteCredentialArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.DeleteCredentialStub
+	fakeReturns := fake.deleteCredentialReturns
+	fake.recordInvocation("DeleteCredential", []interface{}{arg1})
+	fake.deleteCredentialMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClientInterface) DeleteCredentialCallCount() int {
+	fake.deleteCredentialMutex.RLock()
+	defer fake.deleteCredentialMutex.RUnlock()
+	return len(fake.deleteCredentialArgsForCall)
+}
+
+func (fake *FakeClientInterface) DeleteCredentialCalls(stub func(string) error) {
+	fake.deleteCredentialMutex.Lock()
+	defer fake.deleteCredentialMutex.Unlock()
+	fake.DeleteCredentialStub = stub
+}
+
+func (fake *FakeClientInterface) DeleteCredentialArgsForCall(i int) string {
+	fake.deleteCredentialMutex.RLock()
+	defer fake.deleteCredentialMutex.RUnlock()
+	argsForCall := fake.deleteCredentialArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClientInterface) DeleteCredentialReturns(result1 error) {
+	fake.deleteCredentialMutex.Lock()
+	defer fake.deleteCredentialMutex.Unlock()
+	fake.DeleteCredentialStub = nil
+	fake.deleteCredentialReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) DeleteCredentialReturnsOnCall(i int, result1 error) {
+	fake.deleteCredentialMutex.Lock()
+	defer fake.deleteCredentialMutex.Unlock()
+	fake.DeleteCredentialStub = nil
+	if fake.deleteCredentialReturnsOnCall == nil {
+		fake.deleteCredentialReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteCredentialReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) DeleteExecution(arg1 string) error {
+	fake.deleteExecutionMutex.Lock()
+	ret, specificReturn := fake.deleteExecutionReturnsOnCall[len(fake.deleteExecutionArgsForCall)]
+	fake.deleteExecutionArgsForCall = append(fake.deleteExecutionArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.DeleteExecutionStub
+	fakeReturns := fake.deleteExecutionReturns
+	fake.recordInvocation("DeleteExecution", []interface{}{arg1})
+	fake.deleteExecutionMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClientInterface) DeleteExecutionCallCount() int {
+	fake.deleteExecutionMutex.RLock()
+	defer fake.deleteExecutionMutex.RUnlock()
+	return len(fake.deleteExecutionArgsForCall)
+}
+
+func (fake *FakeClientInterface) DeleteExecutionCalls(stub func(string) error) {
+	fake.deleteExecutionMutex.Lock()
+	defer fake.deleteExecutionMutex.Unlock()
+	fake.DeleteExecutionStub = stub
+}
+
+func (fake *FakeClientInterface) DeleteExecutionArgsForCall(i int) string {
+	fake.deleteExecutionMutex.RLock()
+	defer fake.deleteExecutionMutex.RUnlock()
+	argsForCall := fake.deleteExecutionArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClientInterface) DeleteExecutionReturns(result1 error) {
+	fake.deleteExecutionMutex.Lock()
+	defer fake.deleteExecutionMutex.Unlock()
+	fake.DeleteExecutionStub = nil
+	fake.deleteExecutionReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) DeleteExecutionReturnsOnCall(i int, result1 error) {
+	fake.deleteExecutionMutex.Lock()
+	defer fake.deleteExecutionMutex.Unlock()
+	fake.DeleteExecutionStub = nil
+	if fake.deleteExecutionReturnsOnCall == nil {
+		fake.deleteExecutionReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteExecutionReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) DeleteVariable(arg1 string) error {
+	fake.deleteVariableMutex.Lock()
+	ret, specificReturn := fake.deleteVariableReturnsOnCall[len(fake.deleteVariableArgsForCall)]
+	fake.deleteVariableArgsForCall = append(fake.deleteVariableArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.DeleteVariableStub
+	fakeReturns := fake.deleteVariableReturns
+	fake.recordInvocation("DeleteVariable", []interface{}{arg1})
+	fake.deleteVariableMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClientInterface) DeleteVariableCallCount() int {
+	fake.deleteVariableMutex.RLock()
+	defer fake.deleteVariableMutex.RUnlock()
+	return len(fake.deleteVariableArgsForCall)
+}
+
+func (fake *FakeClientInterface) DeleteVariableCalls(stub func(string) error) {
+	fake.deleteVariableMutex.Lock()
+	defer fake.deleteVariableMutex.Unlock()
+	fake.DeleteVariableStub = stub
+}
+
+func (fake *FakeClientInterface) DeleteVariableArgsForCall(i int) string {
+	fake.deleteVariableMutex.RLock()
+	defer fake.deleteVariableMutex.RUnlock()
+	argsForCall := fake.deleteVariableArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClientInterface) DeleteVariableReturns(result1 error) {
+	fake.deleteVariableMutex.Lock()
+	defer fake.deleteVariableMutex.Unlock()
+	fake.DeleteVariableStub = nil
+	fake.deleteVariableReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) DeleteVariableReturnsOnCall(i int, result1 error) {
+	fake.deleteVariableMutex.Lock()
+	defer fake.deleteVariableMutex.Unlock()
+	fake.DeleteVariableStub = nil
+	if fake.deleteVariableReturnsOnCall == nil {
+		fake.deleteVariableReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteVariableReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) GetCredentialSchema(arg1 string) (map[string]interface{}, error) {
+	fake.getCredentialSchemaMutex.Lock()
+	ret, specificReturn := fake.getCredentialSchemaReturnsOnCall[len(fake.getCredentialSchemaArgsForCall)]
+	fake.getCredentialSchemaArgsForCall = append(fake.getCredentialSchemaArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	stub := fake.GetCredentialSchemaStub
+	fakeReturns := fake.getCredentialSchemaReturns
+	fake.recordInvocation("GetCredentialSchema", []interface{}{arg1})
+	fake.getCredentialSchemaMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClientInterface) GetCredentialSchemaCallCount() int {
+	fake.getCredentialSchemaMutex.RLock()
+	defer fake.getCredentialSchemaMutex.RUnlock()
+	return len(fake.getCredentialSchemaArgsForCall)
+}
+
+func (fake *FakeClientInterface) GetCredentialSchemaCalls(stub func(string) (map[string]interface{}, error)) {
+	fake.getCredentialSchemaMutex.Lock()
+	defer fake.getCredentialSchemaMutex.Unlock()
+	fake.GetCredentialSchemaStub = stub
+}
+
+func (fake *FakeClientInterface) GetCredentialSchemaArgsForCall(i int) string {
+	fake.getCredentialSchemaMutex.RLock()
+	defer fake.getCredentialSchemaMutex.RUnlock()
+	argsForCall := fake.getCredentialSchemaArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClientInterface) GetCredentialSchemaReturns(result1 map[string]interface{}, result2 error) {
+	fake.getCredentialSchemaMutex.Lock()
+	defer fake.getCredentialSchemaMutex.Unlock()
+	fake.GetCredentialSchemaStub = nil
+	fake.getCredentialSchemaReturns = struct {
+		result1 map[string]interface{}
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) GetCredentialSchemaReturnsOnCall(i int, result1 map[string]interface{}, result2 error) {
+	fake.getCredentialSchemaMutex.Lock()
+	defer fake.getCredentialSchemaMutex.Unlock()
+	fake.GetCredentialSchemaStub = nil
+	if fake.getCredentialSchemaReturnsOnCall == nil {
+		fake.getCredentialSchemaReturnsOnCall = make(map[int]struct {
+			result1 map[string]interface{}
+			result2 error
+		})
+	}
+	fake.getCredentialSchemaReturnsOnCall[i] = struct {
+		result1 map[string]interface{}
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) GetProjects(arg1 *int, arg2 string) (*n8n.ProjectList, error) {
+	fake.getProjectsMutex.Lock()
+	ret, specificReturn := fake.getProjectsReturnsOnCall[len(fake.getProjectsArgsForCall)]
+	fake.getProjectsArgsForCall = append(fake.getProjectsArgsForCall, struct {
+		arg1 *int
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.GetProjectsStub
+	fakeReturns := fake.getProjectsReturns
+	fake.recordInvocation("GetProjects", []interface{}{arg1, arg2})
+	fake.getProjectsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClientInterface) GetProjectsCallCount() int {
+	fake.getProjectsMutex.RLock()
+	defer fake.getProjectsMutex.RUnlock()
+	return len(fake.getProjectsArgsForCall)
+}
+
+func (fake *FakeClientInterface) GetProjectsCalls(stub func(*int, string) (*n8n.ProjectList, error)) {
+	fake.getProjectsMutex.Lock()
+	defer fake.getProjectsMutex.Unlock()
+	fake.GetProjectsStub = stub
+}
+
+func (fake *FakeClientInterface) GetProjectsArgsForCall(i int) (*int, string) {
+	fake.getProjectsMutex.RLock()
+	defer fake.getProjectsMutex.RUnlock()
+	argsForCall := fake.getProjectsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeClientInterface) GetProjectsReturns(result1 *n8n.ProjectList, result2 error) {
+	fake.getProjectsMutex.Lock()
+	defer fake.getProjectsMutex.Unlock()
+	fake.GetProjectsStub = nil
+	fake.getProjectsReturns = struct {
+		result1 *n8n.ProjectList
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) GetProjectsReturnsOnCall(i int, result1 *n8n.ProjectList, result2 error) {
+	fake.getProjectsMutex.Lock()
+	defer fake.getProjectsMutex.Unlock()
+	fake.GetProjectsStub = nil
+	if fake.getProjectsReturnsOnCall == nil {
+		fake.getProjectsReturnsOnCall = make(map[int]struct {
+			result1 *n8n.ProjectList
+			result2 error
+		})
+	}
+	fake.getProjectsReturnsOnCall[i] = struct {
+		result1 *n8n.ProjectList
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) GetVariables(arg1 *int, arg2 string) (*n8n.VariableList, error) {
+	fake.getVariablesMutex.Lock()
+	ret, specificReturn := fake.getVariablesReturnsOnCall[len(fake.getVariablesArgsForCall)]
+	fake.getVariablesArgsForCall = append(fake.getVariablesArgsForCall, struct {
+		arg1 *int
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.GetVariablesStub
+	fakeReturns := fake.getVariablesReturns
+	fake.recordInvocation("GetVariables", []interface{}{arg1, arg2})
+	fake.getVariablesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClientInterface) GetVariablesCallCount() int {
+	fake.getVariablesMutex.RLock()
+	defer fake.getVariablesMutex.RUnlock()
+	return len(fake.getVariablesArgsForCall)
+}
+
+func (fake *FakeClientInterface) GetVariablesCalls(stub func(*int, string) (*n8n.VariableList, error)) {
+	fake.getVariablesMutex.Lock()
+	defer fake.getVariablesMutex.Unlock()
+	fake.GetVariablesStub = stub
+}
+
+func (fake *FakeClientInterface) GetVariablesArgsForCall(i int) (*int, string) {
+	fake.getVariablesMutex.RLock()
+	defer fake.getVariablesMutex.RUnlock()
+	argsForCall := fake.getVariablesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeClientInterface) GetVariablesReturns(result1 *n8n.VariableList, result2 error) {
+	fake.getVariablesMutex.Lock()
+	defer fake.getVariablesMutex.Unlock()
+	fake.GetVariablesStub = nil
+	fake.getVariablesReturns = struct {
+		result1 *n8n.VariableList
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) GetVariablesReturnsOnCall(i int, result1 *n8n.VariableList, result2 error) {
+	fake.getVariablesMutex.Lock()
+	defer fake.getVariablesMutex.Unlock()
+	fake.GetVariablesStub = nil
+	if fake.getVariablesReturnsOnCall == nil {
+		fake.getVariablesReturnsOnCall = make(map[int]struct {
+			result1 *n8n.VariableList
+			result2 error
+		})
+	}
+	fake.getVariablesReturnsOnCall[i] = struct {
+		result1 *n8n.VariableList
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) RetryExecution(arg1 string, arg2 bool) (*n8n.Execution, error) {
+	fake.retryExecutionMutex.Lock()
+	ret, specificReturn := fake.retryExecutionReturnsOnCall[len(fake.retryExecutionArgsForCall)]
+	fake.retryExecutionArgsForCall = append(fake.retryExecutionArgsForCall, struct {
+		arg1 string
+		arg2 bool
+	}{arg1, arg2})
+	stub := fake.RetryExecutionStub
+	fakeReturns := fake.retryExecutionReturns
+	fake.recordInvocation("RetryExecution", []interface{}{arg1, arg2})
+	fake.retryExecutionMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClientInterface) RetryExecutionCallCount() int {
+	fake.retryExecutionMutex.RLock()
+	defer fake.retryExecutionMutex.RUnlock()
+	return len(fake.retryExecutionArgsForCall)
+}
+
+func (fake *FakeClientInterface) RetryExecutionCalls(stub func(string, bool) (*n8n.Execution, error)) {
+	fake.retryExecutionMutex.Lock()
+	defer fake.retryExecutionMutex.Unlock()
+	fake.RetryExecutionStub = stub
+}
+
+func (fake *FakeClientInterface) RetryExecutionArgsForCall(i int) (string, bool) {
+	fake.retryExecutionMutex.RLock()
+	defer fake.retryExecutionMutex.RUnlock()
+	argsForCall := fake.retryExecutionArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeClientInterface) RetryExecutionReturns(result1 *n8n.Execution, result2 error) {
+	fake.retryExecutionMutex.Lock()
+	defer fake.retryExecutionMutex.Unlock()
+	fake.RetryExecutionStub = nil
+	fake.retryExecutionReturns = struct {
+		result1 *n8n.Execution
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) RetryExecutionReturnsOnCall(i int, result1 *n8n.Execution, result2 error) {
+	fake.retryExecutionMutex.Lock()
+	defer fake.retryExecutionMutex.Unlock()
+	fake.RetryExecutionStub = nil
+	if fake.retryExecutionReturnsOnCall == nil {
+		fake.retryExecutionReturnsOnCall = make(map[int]struct {
+			result1 *n8n.Execution
+			result2 error
+		})
+	}
+	fake.retryExecutionReturnsOnCall[i] = struct {
+		result1 *n8n.Execution
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) UpdateVariable(arg1 string, arg2 *n8n.Variable) error {
+	fake.updateVariableMutex.Lock()
+	ret, specificReturn := fake.updateVariableReturnsOnCall[len(fake.updateVariableArgsForCall)]
+	fake.updateVariableArgsForCall = append(fake.updateVariableArgsForCall, struct {
+		arg1 string
+		arg2 *n8n.Variable
+	}{arg1, arg2})
+	stub := fake.UpdateVariableStub
+	fakeReturns := fake.updateVariableReturns
+	fake.recordInvocation("UpdateVariable", []interface{}{arg1, arg2})
+	fake.updateVariableMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeClientInterface) UpdateVariableCallCount() int {
+	fake.updateVariableMutex.RLock()
+	defer fake.updateVariableMutex.RUnlock()
+	return len(fake.updateVariableArgsForCall)
+}
+
+func (fake *FakeClientInterface) UpdateVariableCalls(stub func(string, *n8n.Variable) error) {
+	fake.updateVariableMutex.Lock()
+	defer fake.updateVariableMutex.Unlock()
+	fake.UpdateVariableStub = stub
+}
+
+func (fake *FakeClientInterface) UpdateVariableArgsForCall(i int) (string, *n8n.Variable) {
+	fake.updateVariableMutex.RLock()
+	defer fake.updateVariableMutex.RUnlock()
+	argsForCall := fake.updateVariableArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeClientInterface) UpdateVariableReturns(result1 error) {
+	fake.updateVariableMutex.Lock()
+	defer fake.updateVariableMutex.Unlock()
+	fake.UpdateVariableStub = nil
+	fake.updateVariableReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeClientInterface) UpdateVariableReturnsOnCall(i int, result1 error) {
+	fake.updateVariableMutex.Lock()
+	defer fake.updateVariableMutex.Unlock()
+	fake.UpdateVariableStub = nil
+	if fake.updateVariableReturnsOnCall == nil {
+		fake.updateVariableReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.updateVariableReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeClientInterface) UpdateWorkflow(arg1 string, arg2 *n8n.Workflow) (*n8n.Workflow, error) {
@@ -1013,31 +1853,119 @@ func (fake *FakeClientInterface) UpdateWorkflowTagsReturnsOnCall(i int, result1 
 	}{result1, result2}
 }
 
+func (fake *FakeClientInterface) GenerateAudit(arg1 *n8n.PostAuditJSONBody) (*n8n.Audit, error) {
+	fake.generateAuditMutex.Lock()
+	ret, specificReturn := fake.generateAuditReturnsOnCall[len(fake.generateAuditArgsForCall)]
+	fake.generateAuditArgsForCall = append(fake.generateAuditArgsForCall, struct {
+		arg1 *n8n.PostAuditJSONBody
+	}{arg1})
+	stub := fake.GenerateAuditStub
+	fakeReturns := fake.generateAuditReturns
+	fake.recordInvocation("GenerateAudit", []interface{}{arg1})
+	fake.generateAuditMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeClientInterface) GenerateAuditCallCount() int {
+	fake.generateAuditMutex.RLock()
+	defer fake.generateAuditMutex.RUnlock()
+	return len(fake.generateAuditArgsForCall)
+}
+
+func (fake *FakeClientInterface) GenerateAuditCalls(stub func(*n8n.PostAuditJSONBody) (*n8n.Audit, error)) {
+	fake.generateAuditMutex.Lock()
+	defer fake.generateAuditMutex.Unlock()
+	fake.GenerateAuditStub = stub
+}
+
+func (fake *FakeClientInterface) GenerateAuditArgsForCall(i int) *n8n.PostAuditJSONBody {
+	fake.generateAuditMutex.RLock()
+	defer fake.generateAuditMutex.RUnlock()
+	argsForCall := fake.generateAuditArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeClientInterface) GenerateAuditReturns(result1 *n8n.Audit, result2 error) {
+	fake.generateAuditMutex.Lock()
+	defer fake.generateAuditMutex.Unlock()
+	fake.GenerateAuditStub = nil
+	fake.generateAuditReturns = struct {
+		result1 *n8n.Audit
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeClientInterface) GenerateAuditReturnsOnCall(i int, result1 *n8n.Audit, result2 error) {
+	fake.generateAuditMutex.Lock()
+	defer fake.generateAuditMutex.Unlock()
+	fake.GenerateAuditStub = nil
+	if fake.generateAuditReturnsOnCall == nil {
+		fake.generateAuditReturnsOnCall = make(map[int]struct {
+			result1 *n8n.Audit
+			result2 error
+		})
+	}
+	fake.generateAuditReturnsOnCall[i] = struct {
+		result1 *n8n.Audit
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeClientInterface) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.activateWorkflowMutex.RLock()
 	defer fake.activateWorkflowMutex.RUnlock()
+	fake.createCredentialMutex.RLock()
+	defer fake.createCredentialMutex.RUnlock()
+	fake.createProjectMutex.RLock()
+	defer fake.createProjectMutex.RUnlock()
 	fake.createTagMutex.RLock()
 	defer fake.createTagMutex.RUnlock()
+	fake.createVariableMutex.RLock()
+	defer fake.createVariableMutex.RUnlock()
 	fake.createWorkflowMutex.RLock()
 	defer fake.createWorkflowMutex.RUnlock()
 	fake.deactivateWorkflowMutex.RLock()
 	defer fake.deactivateWorkflowMutex.RUnlock()
+	fake.deleteCredentialMutex.RLock()
+	defer fake.deleteCredentialMutex.RUnlock()
+	fake.generateAuditMutex.RLock()
+	defer fake.generateAuditMutex.RUnlock()
+	fake.deleteExecutionMutex.RLock()
+	defer fake.deleteExecutionMutex.RUnlock()
+	fake.deleteVariableMutex.RLock()
+	defer fake.deleteVariableMutex.RUnlock()
 	fake.deleteWorkflowMutex.RLock()
 	defer fake.deleteWorkflowMutex.RUnlock()
+	fake.getCredentialSchemaMutex.RLock()
+	defer fake.getCredentialSchemaMutex.RUnlock()
 	fake.getExecutionByIdMutex.RLock()
 	defer fake.getExecutionByIdMutex.RUnlock()
 	fake.getExecutionsMutex.RLock()
 	defer fake.getExecutionsMutex.RUnlock()
+	fake.getProjectsMutex.RLock()
+	defer fake.getProjectsMutex.RUnlock()
 	fake.getTagsMutex.RLock()
 	defer fake.getTagsMutex.RUnlock()
+	fake.getVariablesMutex.RLock()
+	defer fake.getVariablesMutex.RUnlock()
 	fake.getWorkflowMutex.RLock()
 	defer fake.getWorkflowMutex.RUnlock()
 	fake.getWorkflowTagsMutex.RLock()
 	defer fake.getWorkflowTagsMutex.RUnlock()
 	fake.getWorkflowsMutex.RLock()
 	defer fake.getWorkflowsMutex.RUnlock()
+	fake.retryExecutionMutex.RLock()
+	defer fake.retryExecutionMutex.RUnlock()
+	fake.updateVariableMutex.RLock()
+	defer fake.updateVariableMutex.RUnlock()
 	fake.updateWorkflowMutex.RLock()
 	defer fake.updateWorkflowMutex.RUnlock()
 	fake.updateWorkflowTagsMutex.RLock()

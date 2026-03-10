@@ -58,6 +58,22 @@ through version control systems.`,
 			return nil
 		}
 
+		// Load profile if specified
+		profileName, _ := cmd.Flags().GetString("profile")
+		if profileName == "" {
+			// also try root flags since it's persistent
+			if rootFlag := cmd.Root().PersistentFlags().Lookup("profile"); rootFlag != nil {
+				profileName = rootFlag.Value.String()
+			}
+		}
+		if profileName == "" {
+			profileName = viper.GetString("default_profile")
+		}
+		if profileName != "" {
+			// Ignore error - profile may not exist if config file not initialized
+			_ = config.LoadProfile(profileName)
+		}
+
 		if IsWorkflowCommand(cmd) && viper.GetString("api_key") == "" {
 			return fmt.Errorf("API key is required. Set it using the --api-key flag or N8N_API_KEY environment variable")
 		}
@@ -85,6 +101,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("api-key", "k", "", "n8n API Key (env: N8N_API_KEY)")
 	rootCmd.PersistentFlags().StringP("url", "u", "http://localhost:5678", "n8n instance URL (env: N8N_INSTANCE_URL)")
 	rootCmd.PersistentFlags().Bool("debug", false, "Enable debug logging (env: DEBUG)")
+	rootCmd.PersistentFlags().StringP("profile", "p", "", "Configuration profile to use (from ~/.n8n/config.yaml)")
 	rootCmd.Flags().Bool("version", false, "Display the version information")
 
 	if err := viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api-key")); err != nil {
@@ -99,7 +116,7 @@ func init() {
 	rootCmd.Flags().BoolP("verbose", "V", false, "Show detailed output during synchronization")
 }
 
-// IsWorkflowCommand checks if the command or any of its parents is the workflows command
+// IsWorkflowCommand checks if the command or any of its parents is a command that requires the API
 func IsWorkflowCommand(cmd *cobra.Command) bool {
 	if cmd.Name() == "workflows" || cmd.Name() == "list" || cmd.Name() == "sync" || cmd.Name() == "activate" || cmd.Name() == "deactivate" || cmd.Name() == "refresh" {
 		return true
@@ -107,7 +124,7 @@ func IsWorkflowCommand(cmd *cobra.Command) bool {
 
 	parent := cmd.Parent()
 	for parent != nil {
-		if parent.Name() == "workflows" {
+		if parent.Name() == "workflows" || parent.Name() == "credentials" || parent.Name() == "variables" || parent.Name() == "projects" || parent.Name() == "audit" {
 			return true
 		}
 		parent = parent.Parent()

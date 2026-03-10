@@ -48,8 +48,48 @@ func NewClient(baseURL, apiToken string) *Client {
 	return &Client{
 		baseURL:  baseURL + "/api/v1",
 		apiToken: apiToken,
-		client:   &http.Client{},
-		logger:   logger,
+		client: &http.Client{
+			Transport: &RetryTransport{
+				Base:   http.DefaultTransport,
+				Config: DefaultRetryConfig,
+				Logger: logger,
+			},
+		},
+		logger: logger,
+	}
+}
+
+// NewClientWithConfig creates a new n8n client with a custom retry configuration
+func NewClientWithConfig(baseURL, apiToken string, retryConfig RetryConfig) *Client {
+	var logger *zap.SugaredLogger
+
+	if os.Getenv("DEBUG") == "1" || os.Getenv("DEBUG") == "true" {
+		cfg := zap.NewDevelopmentConfig()
+		cfg.EncoderConfig.TimeKey = "time"
+		cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
+		zapLogger, err := cfg.Build()
+		if err != nil {
+			zapLogger, _ = zap.NewProduction()
+		}
+
+		logger = zapLogger.Sugar().Named("n8n-api")
+	} else {
+		zapLogger, _ := zap.NewProduction()
+		logger = zapLogger.Sugar().Named("n8n-api")
+	}
+
+	return &Client{
+		baseURL:  baseURL + "/api/v1",
+		apiToken: apiToken,
+		client: &http.Client{
+			Transport: &RetryTransport{
+				Base:   http.DefaultTransport,
+				Config: retryConfig,
+				Logger: logger,
+			},
+		},
+		logger: logger,
 	}
 }
 
@@ -58,22 +98,49 @@ func (c *Client) logDebug(format string, args ...interface{}) {
 	c.logger.Debugf(format, args...)
 }
 
+// WorkflowFilters holds optional filters for GetWorkflows
+type WorkflowFilters struct {
+	Active    *bool
+	Tags      string
+	Name      string
+	ProjectID string
+}
+
 // GetWorkflows fetches workflows from the n8n API
 // If limit is nil, uses the API's default (100)
 // If limit is provided, returns up to that many workflows (max MaxLimit)
-func (c *Client) GetWorkflows(limit *int) (*WorkflowList, error) {
-	url := fmt.Sprintf("%s/workflows", c.baseURL)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+// If filters is provided, applies the given filters as query parameters
+func (c *Client) GetWorkflows(limit *int, filters *WorkflowFilters) (*WorkflowList, error) {
+	apiURL := fmt.Sprintf("%s/workflows", c.baseURL)
+	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
 	if err != nil {
 		return nil, err
 	}
 
+	q := req.URL.Query()
 	if limit != nil {
 		requestLimit := min(*limit, MaxLimit)
-		q := req.URL.Query()
 		q.Add("limit", strconv.Itoa(requestLimit))
-		req.URL.RawQuery = q.Encode()
 	}
+	if filters != nil {
+		if filters.Active != nil {
+			if *filters.Active {
+				q.Add("active", "true")
+			} else {
+				q.Add("active", "false")
+			}
+		}
+		if filters.Tags != "" {
+			q.Add("tags", filters.Tags)
+		}
+		if filters.Name != "" {
+			q.Add("name", filters.Name)
+		}
+		if filters.ProjectID != "" {
+			q.Add("projectId", filters.ProjectID)
+		}
+	}
+	req.URL.RawQuery = q.Encode()
 
 	req.Header.Set("X-N8N-API-KEY", c.apiToken)
 	req.Header.Set("Content-Type", "application/json")
@@ -619,4 +686,448 @@ func (c *Client) GetTags() (*TagList, error) {
 	}
 
 	return &result, nil
+}
+
+// GetVariables fetches environment variables from the n8n API
+func (c *Client) GetVariables(limit *int, cursor string) (*VariableList, error) {
+	apiURL := fmt.Sprintf("%s/variables", c.baseURL)
+	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	q := req.URL.Query()
+	if limit != nil {
+		requestLimit := min(*limit, MaxLimit)
+		q.Add("limit", strconv.Itoa(requestLimit))
+	}
+	if cursor != "" {
+		q.Add("cursor", cursor)
+	}
+	req.URL.RawQuery = q.Encode()
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	var result VariableList
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// CreateVariable creates a new environment variable
+func (c *Client) CreateVariable(variable *Variable) error {
+	apiURL := fmt.Sprintf("%s/variables", c.baseURL)
+
+	body, err := json.Marshal(variable)
+	if err != nil {
+		return fmt.Errorf("error marshaling variable: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, apiURL, bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	return nil
+}
+
+// UpdateVariable updates an existing environment variable by its ID
+func (c *Client) UpdateVariable(id string, variable *Variable) error {
+	apiURL := fmt.Sprintf("%s/variables/%s", c.baseURL, id)
+
+	body, err := json.Marshal(variable)
+	if err != nil {
+		return fmt.Errorf("error marshaling variable: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPut, apiURL, bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	return nil
+}
+
+// DeleteVariable deletes an environment variable by its ID
+func (c *Client) DeleteVariable(id string) error {
+	apiURL := fmt.Sprintf("%s/variables/%s", c.baseURL, id)
+
+	req, err := http.NewRequest(http.MethodDelete, apiURL, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	return nil
+}
+
+// GetProjects fetches projects from the n8n API
+func (c *Client) GetProjects(limit *int, cursor string) (*ProjectList, error) {
+	apiURL := fmt.Sprintf("%s/projects", c.baseURL)
+	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	q := req.URL.Query()
+	if limit != nil {
+		requestLimit := min(*limit, MaxLimit)
+		q.Add("limit", strconv.Itoa(requestLimit))
+	}
+	if cursor != "" {
+		q.Add("cursor", cursor)
+	}
+	req.URL.RawQuery = q.Encode()
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	var result ProjectList
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// CreateProject creates a new project
+func (c *Client) CreateProject(name string) error {
+	apiURL := fmt.Sprintf("%s/projects", c.baseURL)
+
+	project := Project{Name: name}
+	body, err := json.Marshal(project)
+	if err != nil {
+		return fmt.Errorf("error marshaling project: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, apiURL, bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	return nil
+}
+
+// GetCredentialSchema fetches the schema for a credential type
+func (c *Client) GetCredentialSchema(credentialTypeName string) (map[string]interface{}, error) {
+	apiURL := fmt.Sprintf("%s/credentials/schema/%s", c.baseURL, credentialTypeName)
+
+	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// CreateCredential creates a new credential
+func (c *Client) CreateCredential(credential *Credential) (*CreateCredentialResponse, error) {
+	apiURL := fmt.Sprintf("%s/credentials", c.baseURL)
+
+	body, err := json.Marshal(credential)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling credential: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, apiURL, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	var result CreateCredentialResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// DeleteCredential deletes a credential by its ID
+func (c *Client) DeleteCredential(id string) error {
+	apiURL := fmt.Sprintf("%s/credentials/%s", c.baseURL, id)
+
+	req, err := http.NewRequest(http.MethodDelete, apiURL, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	return nil
+}
+
+// RetryExecution retries a failed execution
+func (c *Client) RetryExecution(executionID string, loadWorkflow bool) (*Execution, error) {
+	apiURL := fmt.Sprintf("%s/executions/%s/retry", c.baseURL, executionID)
+
+	reqBody := map[string]bool{"loadWorkflow": loadWorkflow}
+	body, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling request: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, apiURL, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	var flexibleResult ExecutionWithFlexibleIDs
+	if err := json.NewDecoder(resp.Body).Decode(&flexibleResult); err != nil {
+		return nil, fmt.Errorf("failed to decode execution: %v", err)
+	}
+
+	result := toExecution(flexibleResult)
+	return &result, nil
+}
+
+// GenerateAudit generates a security audit report for the n8n instance
+func (c *Client) GenerateAudit(options *PostAuditJSONBody) (*Audit, error) {
+	apiURL := fmt.Sprintf("%s/audit", c.baseURL)
+
+	var body []byte
+	var err error
+	if options != nil {
+		body, err = json.Marshal(options)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling audit options: %w", err)
+		}
+	} else {
+		body = []byte("{}")
+	}
+
+	req, err := http.NewRequest(http.MethodPost, apiURL, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	var result Audit
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+// DeleteExecution deletes an execution by its ID
+func (c *Client) DeleteExecution(executionID string) error {
+	apiURL := fmt.Sprintf("%s/executions/%s", c.baseURL, executionID)
+
+	req, err := http.NewRequest(http.MethodDelete, apiURL, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("X-N8N-API-KEY", c.apiToken)
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			c.logger.Warnf("Error closing response body: %v", err)
+		}
+	}()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API returned error %d: %s", resp.StatusCode, body)
+	}
+
+	return nil
 }

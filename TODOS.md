@@ -11,8 +11,8 @@ This document outlines essential features for the n8n-cli tool based on the gene
 - [x] Activate/deactivate workflows
 - [x] Delete workflows from n8n instance
 - [x] Get execution history for workflows
-- [ ] Implement validate command to apply static analysis on workflow files - should help to identify issues before syncing to n8n instance
-- [ ] List all workflows with filter capabilities (by name, tags, active status)
+- [x] Implement validate command to apply static analysis on workflow files - `n8n workflows validate`
+- [x] List all workflows with filter capabilities (by name, tags, active status) - `--name`, `--tags`, `--active`, `--inactive` flags
 
 ### Tags Management
 
@@ -27,45 +27,49 @@ This document outlines essential features for the n8n-cli tool based on the gene
 
 ### Credentials Management
 
-- [ ] List credentials from n8n instance
-- [ ] Apply credentials from Github to n8n instance - it seems that only creation is possible from openapi, which makes sense for security reasons. Have to check how to get the credentials reference correctly so it could be used in the workflow files
+- [x] Create credentials - `n8n credentials create --name <name> --type <type> --data <json>`
+- [x] Delete credentials - `n8n credentials delete <id>`
+- [x] Get credential schema - `n8n credentials schema <type>`
+- [ ] List credentials from n8n instance - **Not possible via public API v1** (no GET /credentials endpoint)
 
 ### Workflow Execution
 
-- [ ] Execute a workflow manually
-- [ ] Retrieve execution results
-- [ ] Monitor execution status
+- [ ] Execute a workflow manually - **Not possible via public API v1** (no POST /workflows/:id/run endpoint)
+- [x] Retrieve execution results - `n8n workflows executions <id>` with `--include-data`
+- [x] Retry failed executions - `n8n workflows executions retry <id>`
+- [x] Delete executions - via `DeleteExecution` API method
 
 ### Variables Management
 
-- [ ] List variables
-- [ ] Export variables to local files
-- [ ] Import variables from local files
-- [ ] Set/update variable values
+- [x] List variables - `n8n variables list`
+- [x] Export variables to local files - `n8n variables export --file <path>`
+- [x] Import variables from local files - `n8n variables import --file <path>`
+- [x] Set/update variable values - `n8n variables set <KEY> <VALUE>`
+- [x] Delete variables - `n8n variables delete <ID>`
 
 ### Project Management
 
-- [ ] List projects
-- [ ] Create new projects
+- [x] List projects - `n8n projects list`
+- [x] Create new projects - `n8n projects create <NAME>`
 - [ ] ~Transfer workflows between projects~
 
 ### Audit & Security
 
 - [ ] Generate audit reports for workflows
-- [ ] Validate workflow files locally before upload
+- [x] Validate workflow files locally before upload - `n8n workflows validate`
 
 ### Configuration & Setup
 
-- [ ] Initialize local configuration
-- [ ] Set/update n8n instance URL
-- [ ] Set/update API key
-- [ ] Configure default project
-- [ ] Enable verbose logging
+- [x] Initialize local configuration - `n8n config init`
+- [x] Set/update n8n instance URL - `n8n config set instance_url <url>`
+- [x] Set/update API key - `n8n config set api_key <key>`
+- [x] Configure default project/profile - `n8n config profiles use <name>`
+- [ ] Enable verbose logging - use `--debug` flag (already supported)
 
 ## Technical Enhancements
 
-- [ ] Implement retry logic for API requests
-- [ ] Add support for multiple n8n instances (profiles)
+- [x] Implement retry logic for API requests - exponential backoff via `RetryTransport`
+- [x] Add support for multiple n8n instances (profiles) - `n8n config profiles add/list/use`, `--profile` flag
 - [ ] Create workspace configuration for team collaboration
 - [x] Add support for environment-specific variables
 - [x] Add check-dirty feature to CI pipeline to detect uncommitted generated files

@@ -40,3 +40,25 @@ func BindEnvSafely(v *viper.Viper, key, envVar string) {
 		fmt.Fprintf(os.Stderr, "Error binding environment variable %s: %v\n", envVar, err)
 	}
 }
+
+// LoadProfile loads a named profile from the config file into viper
+func LoadProfile(profileName string) error {
+	profiles := viper.GetStringMap("profiles")
+	profileData, ok := profiles[profileName]
+	if !ok {
+		return fmt.Errorf("profile %q not found in config", profileName)
+	}
+
+	profile, ok := profileData.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("invalid profile format for %q", profileName)
+	}
+
+	// Only set values that aren't already set by flags/env
+	for k, v := range profile {
+		if !viper.IsSet(k) {
+			viper.Set(k, v)
+		}
+	}
+	return nil
+}
