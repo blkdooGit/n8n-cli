@@ -27,14 +27,22 @@
   - [Autocompletion](#autocompletion)
   - [Manual Installation with Go](#manual-installation-with-go)
 - [Configuration](#configuration)
+  - [Profiles (multi-instance)](#profiles-multi-instance)
 - [Commands](#commands)
   - [Version](#version)
   - [Workflows](#workflows)
     - [List](#list)
+    - [Validate](#validate)
     - [Refresh](#refresh)
     - [Sync](#sync)
     - [Activate](#activate)
     - [Deactivate](#deactivate)
+    - [Executions Retry](#executions-retry)
+  - [Variables](#variables)
+  - [Projects](#projects)
+  - [Credentials](#credentials)
+  - [Audit](#audit)
+  - [Config](#config)
 - [Development](#development)
 - [Examples](#examples)
   - [Contact Form Example](#contact-form-example)
@@ -96,6 +104,26 @@ Note: Environment variables set directly in your shell will take precedence over
 
 **Important:** Never commit your `.env` file containing API credentials to version control systems like GitHub. Make sure to add `.env` to your `.gitignore` file to prevent accidental exposure of sensitive credentials.
 
+### Profiles (multi-instance)
+
+The CLI supports named profiles for managing multiple n8n instances:
+
+```bash
+# Initialize config file
+n8n config init
+
+# Add a profile
+n8n config profiles add production --url https://n8n.mycompany.com --api-key YOUR_KEY
+
+# Set default profile
+n8n config profiles use production
+
+# Use a specific profile for a single command
+n8n --profile production workflows list
+```
+
+Profile configuration is stored at `~/.n8n/config.yaml`.
+
 ## Commands
 
 ### Version
@@ -122,26 +150,53 @@ n8n workflows list
 
 Options:
 
-- `--output, -o`: Output format (default: "table"). Supported formats:
-  - `table`: Human-readable tabular format
-  - `json`: JSON format for programmatic use
-  - `yaml`: YAML format for configuration files
+- `--output, -o`: Output format (default: "table"). Supported formats: `table`, `json`, `yaml`
 - `--limit, -l`: Maximum number of workflows to return (default: 100, max: 250)
+- `--name`: Filter by workflow name (partial match)
+- `--tags`: Filter by tags (comma-separated)
+- `--active`: Show only active workflows
+- `--inactive`: Show only inactive workflows
 
 Examples:
 
 ```bash
-# List workflows in default table format
+# List all workflows
 n8n workflows list
 
-# List workflows in JSON format
+# Filter by name and active status
+n8n workflows list --name "invoice" --active
+
+# Filter by tags
+n8n workflows list --tags "production,crm"
+
+# Output as JSON
 n8n workflows list --output json
+```
 
-# List workflows in YAML format
-n8n workflows list --output yaml
+#### Validate
 
-# List workflows with custom limit
-n8n workflows list --limit 50
+Statically analyze local workflow JSON/YAML files before syncing:
+
+```bash
+n8n workflows validate [FILES...] --directory workflows/
+```
+
+Options:
+
+- `--directory, -d`: Validate all workflow files in a directory
+- `--strict`: Fail on warnings in addition to errors
+
+Examples:
+
+```bash
+# Validate all files in a directory
+n8n workflows validate --directory workflows/
+
+# Validate specific files
+n8n workflows validate workflow1.json workflow2.yaml
+
+# Strict mode (warnings are treated as errors)
+n8n workflows validate --directory workflows/ --strict
 ```
 
 #### Refresh
@@ -238,8 +293,6 @@ Activate a specific workflow by ID:
 n8n workflows activate WORKFLOW_ID
 ```
 
-This command activates a workflow in the n8n instance, making it ready to be triggered by events.
-
 #### Deactivate
 
 Deactivate a specific workflow by ID:
@@ -248,7 +301,114 @@ Deactivate a specific workflow by ID:
 n8n workflows deactivate WORKFLOW_ID
 ```
 
-This command deactivates a workflow in the n8n instance, stopping it from being triggered by events.
+#### Executions Retry
+
+Retry a failed execution:
+
+```bash
+n8n workflows executions retry EXECUTION_ID
+```
+
+Options:
+
+- `--load-workflow`: Load the latest workflow version before retrying
+
+### Variables
+
+Manage environment variables in your n8n instance:
+
+```bash
+# List all variables
+n8n variables list
+
+# Set or update a variable
+n8n variables set MY_KEY my_value
+
+# Set with type
+n8n variables set MY_NUMBER 42 --type number
+
+# Delete a variable
+n8n variables delete VARIABLE_ID
+
+# Export to file (auto-detects format from extension)
+n8n variables export --file vars.json
+n8n variables export --file vars.yaml
+n8n variables export --file .env
+
+# Import from file
+n8n variables import --file vars.json
+n8n variables import --file .env
+```
+
+### Projects
+
+Manage n8n projects:
+
+```bash
+# List all projects
+n8n projects list
+
+# Create a new project
+n8n projects create "My Project"
+```
+
+### Credentials
+
+Manage n8n credentials:
+
+```bash
+# Get the schema for a credential type
+n8n credentials schema hubspotApi
+n8n credentials schema slackApi
+
+# Create a credential
+n8n credentials create --name "My HubSpot" --type hubspotApi --data '{"apiKey":"your_key"}'
+
+# Delete a credential
+n8n credentials delete CREDENTIAL_ID
+```
+
+> **Note:** The n8n public API v1 does not expose a list credentials endpoint for security reasons. Use the n8n UI to view existing credentials.
+
+### Audit
+
+Generate a security audit report for your n8n instance:
+
+```bash
+# Generate audit report (table format)
+n8n audit generate
+
+# Output as JSON
+n8n audit generate --output json
+
+# Audit specific categories
+n8n audit generate --categories credentials,nodes
+
+# Configure abandoned workflow threshold
+n8n audit generate --days-abandoned-workflow 30
+```
+
+### Config
+
+Manage CLI configuration:
+
+```bash
+# Initialize config file at ~/.n8n/config.yaml
+n8n config init
+
+# Get current configuration
+n8n config get
+n8n config get instance_url
+
+# Set a configuration value
+n8n config set instance_url https://n8n.mycompany.com
+n8n config set api_key YOUR_API_KEY
+
+# Manage profiles
+n8n config profiles list
+n8n config profiles add staging --url https://staging.n8n.com --api-key KEY
+n8n config profiles use staging
+```
 
 ## Development
 
