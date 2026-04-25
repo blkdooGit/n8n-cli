@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1](https://github.com/edenreich/n8n-cli/compare/v0.7.0...v0.7.1) (2026-04-25)
+
+### 🐛 Bug Fixes
+
+* **encoder:** Strip StaticData in CleanWorkflow to prevent false sync diffs ([#36](https://github.com/edenreich/n8n-cli/issues/36)) ([05c0ca9](https://github.com/edenreich/n8n-cli/commit/05c0ca9bd320b04588f19cc01c47449a34552033))
+
+### 🔧 Miscellaneous
+
+* Bump github action to latest ([fce7ede](https://github.com/edenreich/n8n-cli/commit/fce7edea90044715f47e4e7d9feb01b4411035ec))
+* Close stable github issues ([ff631a4](https://github.com/edenreich/n8n-cli/commit/ff631a4ffafd448977ef065d285adad69e872f5b))
+* **deps:** Bump dev dependencies ([6f18aa8](https://github.com/edenreich/n8n-cli/commit/6f18aa8e62f7d4e9402b524d3cfb9ba323a7e5f4))
+
 ## [0.7.0](https://github.com/edenreich/n8n-cli/compare/v0.6.0...v0.7.0) (2026-01-27)
 
 ### ✨ Features
