@@ -1,0 +1,43 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  Tech stack: Go 1.25.5, Cobra CLI (spf13/cobra), Viper config, Zap logging.
+  Architecture: cmd/ (Cobra commands per resource) -> n8n/ (API client,
+  oapi-codegen generated types) -> config/ (Viper) -> logger/ (Zap).
+  Testing: go test via Taskfile (task test-unit, task test-integration),
+  testify assertions, counterfeiter-generated fakes for n8n.Client.
+  CI: GitHub Actions (ci.yml, release.yml via semantic-release, artifacts.yml).
+  API spec: openapi.yml linted with Spectral (.spectral.yaml), types via oapi-codegen.
+  Style: golangci-lint (task lint). Early returns preferred over nested conditionals.
+  Provenance: derivative of github.com/edenreich/n8n-cli (MIT; upstream attribution intact
+  in LICENSE, go.mod module path, and file headers) — stripped-history local copy, NOT
+  original BLKdoo work. SDD here documents BLKdoo usage/gotchas and local patches only;
+  upstream architecture redesigns are out of scope pending a founder decision on attribution.
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected modules/packages (cmd/, n8n/, config/, logger/)
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows (n8n API interactions)
+    - Document architecture decisions with rationale
+  tasks:
+    - Group tasks by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2, etc.)
+    - Keep tasks small enough to complete in one session
+  apply:
+    checklist:
+      - Follow existing code patterns and conventions (early returns, DI via interfaces)
+      - Load relevant coding skills for the project stack
+    tdd: true
+    test_command: "task test-unit"
+  verify:
+    test_command: "task test"
+    build_command: "task build"
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas (large removals)

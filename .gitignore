@@ -5,3 +5,6 @@ bin
 .vscode
 .DS_Store
 package-lock.json
+
+# skill registry cache (regenerable, machine-local)
+.atl/
